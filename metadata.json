@@ -1,0 +1,6 @@
+{
+  "name": "smile360 Dental Studio",
+  "description": "A modern dental clinic studio web application with appointment booking, treatment showcases, team profiles, pricing, and patient resources.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

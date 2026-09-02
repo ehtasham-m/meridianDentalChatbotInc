@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-line;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html,
+  body {
+    @apply bg-warm text-ink;
+  }
+
+  body {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    @apply bg-mint-200 text-navy-700;
+  }
+
+  /* Visible, deliberate focus ring — never suppressed */
+  :focus-visible {
+    outline: 2px solid #4fbf98;
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display text-navy-700;
+    letter-spacing: -0.02em;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #faf7f2;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cbdbe8;
+    border-radius: 999px;
+    border: 2px solid #faf7f2;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3e7ca6;
+  }
+}
+
+@layer utilities {
+  .eyebrow {
+    @apply font-body text-[11px] font-semibold uppercase tracking-eyebrow text-clinical-600;
+  }
+
+  .container-content {
+    @apply mx-auto w-full max-w-content px-6 md:px-10 lg:px-16;
+  }
+
+  /* Signature arc stroke-draw animation, used by <ArcDivider> */
+  .arc-path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    pathLength: 1;
+    animation: draw-arc 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
