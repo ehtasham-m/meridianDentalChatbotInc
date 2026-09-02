@@ -7,12 +7,21 @@ export interface StoredAppointment extends AppointmentFormValues {
   status: "received" | "confirmed" | "cancelled";
 }
 
+export interface AppointmentRequestResult {
+  appointment: StoredAppointment;
+  notification: {
+    success: boolean;
+    error?: string;
+    emailId?: string;
+  };
+}
+
 // In-memory appointments store for the server runtime
 const appointmentsStore: StoredAppointment[] = [];
 
 export async function createAppointmentRequest(
   data: AppointmentFormValues
-): Promise<StoredAppointment> {
+): Promise<AppointmentRequestResult> {
   // Generate a clean human-readable reference ID
   const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
   const randomSuffix = Math.floor(1000 + Math.random() * 9000);
@@ -27,12 +36,10 @@ export async function createAppointmentRequest(
 
   appointmentsStore.unshift(appointment);
 
-  // Send real email notification asynchronously via Resend
-  sendAppointmentEmailNotification(appointment).catch((err) => {
-    console.error("[Email Notification Failed]", err);
-  });
+  // Wait for Resend so the API never reports a notification as successful when it failed.
+  const notification = await sendAppointmentEmailNotification(appointment);
 
-  return appointment;
+  return { appointment, notification };
 }
 
 export function getAllAppointments(): StoredAppointment[] {

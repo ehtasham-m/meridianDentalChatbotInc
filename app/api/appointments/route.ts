@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { appointmentSchema } from "@/lib/schema";
-import { createAppointmentRequest, getAllAppointments } from "@/lib/storage/appointments";
+import { createAppointmentRequest } from "@/lib/storage/appointments";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,7 +19,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const appointment = await createAppointmentRequest(parseResult.data);
+    const { appointment, notification } = await createAppointmentRequest(parseResult.data);
+
+    if (!notification.success) {
+      console.error("Appointment notification failed", {
+        appointmentId: appointment.id,
+        error: notification.error,
+      });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Your request was saved, but we could not notify the clinic. Please call the clinic to confirm it.",
+          appointment: { id: appointment.id },
+        },
+        { status: 502 }
+      );
+    }
 
     return NextResponse.json(
       {
@@ -51,19 +66,5 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  // Returns summary of recent appointment requests (without exposing sensitive info)
-  const all = getAllAppointments();
-  return NextResponse.json({
-    total: all.length,
-    appointments: all.map((a) => ({
-      id: a.id,
-      name: a.name,
-      service: a.service,
-      doctor: a.doctor,
-      date: a.date,
-      time: a.time,
-      status: a.status,
-      createdAt: a.createdAt,
-    })),
-  });
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }

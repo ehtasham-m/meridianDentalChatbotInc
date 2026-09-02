@@ -6,6 +6,15 @@ import { DOCTORS } from "@/lib/constants/doctors";
 
 let resendClient: Resend | null = null;
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function getResendClient(): Resend | null {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return null;
@@ -17,7 +26,7 @@ function getResendClient(): Resend | null {
 
 export async function sendAppointmentEmailNotification(
   appointment: StoredAppointment
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; emailId?: string }> {
   try {
     const resend = getResendClient();
     if (!resend) {
@@ -25,8 +34,18 @@ export async function sendAppointmentEmailNotification(
       return { success: false, error: "RESEND_API_KEY not configured" };
     }
 
-    const recipientEmail =
-      process.env.CLINIC_NOTIFICATION_EMAIL || "ehtasham7754@gmail.com";
+    const recipientEmail = process.env.CLINIC_NOTIFICATION_EMAIL;
+    const fromEmail = process.env.RESEND_FROM_EMAIL;
+
+    if (!recipientEmail) {
+      console.error("[Email Notification] CLINIC_NOTIFICATION_EMAIL is not configured.");
+      return { success: false, error: "CLINIC_NOTIFICATION_EMAIL not configured" };
+    }
+
+    if (!fromEmail) {
+      console.error("[Email Notification] RESEND_FROM_EMAIL is not configured.");
+      return { success: false, error: "RESEND_FROM_EMAIL not configured" };
+    }
 
     const serviceObj = SERVICES.find((s) => s.slug === appointment.service);
     const serviceName = serviceObj ? serviceObj.name : appointment.service;
@@ -103,7 +122,7 @@ export async function sendAppointmentEmailNotification(
                   ? `
                 <div class="notes-box">
                   <strong>Patient Notes / Symptoms:</strong><br>
-                  ${appointment.notes}
+                  ${escapeHtml(appointment.notes)}
                 </div>
               `
                   : ""
@@ -118,9 +137,9 @@ export async function sendAppointmentEmailNotification(
       </html>
     `;
 
-    // Resend's free tier allows sending from onboarding@resend.dev to the verified account email
+    // Production sender: an address on a domain verified in Resend.
     const { data, error } = await resend.emails.send({
-      from: "smile360 Dental Studio <onboarding@resend.dev>",
+      from: fromEmail,
       to: [recipientEmail],
       subject: `New Appointment Request: ${appointment.name} (${appointment.date} at ${appointment.time})`,
       html: emailHtml,
@@ -132,7 +151,7 @@ export async function sendAppointmentEmailNotification(
     }
 
     console.log(`[Resend Success] Email notification sent to ${recipientEmail}, id:`, data?.id);
-    return { success: true };
+    return { success: true, emailId: data?.id };
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
     console.error("[Resend Exception]", errorMsg);

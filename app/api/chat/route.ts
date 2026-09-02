@@ -67,7 +67,6 @@ export async function POST(req: NextRequest) {
         contents,
         config: {
           systemInstruction: SYSTEM_PROMPT,
-          temperature: 0.3,
           tools: [{ functionDeclarations: aiFunctionDeclarations }],
         },
       });

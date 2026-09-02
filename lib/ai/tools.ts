@@ -333,7 +333,19 @@ export async function executeAiTool(
         };
       }
 
-      const appointment = await createAppointmentRequest(parsed.data);
+      const { appointment, notification } = await createAppointmentRequest(parsed.data);
+
+      if (!notification.success) {
+        return {
+          result: {
+            success: false,
+            appointmentId: appointment.id,
+            error: "The request was saved, but the clinic notification failed.",
+            message:
+              "Please ask the patient to call the clinic directly to confirm the appointment request.",
+          },
+        };
+      }
 
       return {
         result: {
